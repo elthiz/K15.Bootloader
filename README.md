@@ -112,7 +112,7 @@ MEMORY
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 16K
   FLASH    (rx)    : ORIGIN = 0x8004000,   LENGTH = 64K-16K
 }
-_start_app = ORIGIN(APP);
+_start_app = ORIGIN(FLASH);
 ```
 Из-за отсутствия регистра VTOR внутри Cortex M0 необходимо использовать переносить таблицу прерываний из прошивки основного приложения в RAM. Для этого в LD-скрипте после секции .fini-array добавлено:
 ```c
