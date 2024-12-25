@@ -1,17 +1,17 @@
 # K15.Bootloader
 Bootloader для линейки модулей K15. 
 ## Оглавление
-0. [Цель](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#цель)
-1. [Конфигурация периферии](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#конфигурация-периферии)
-2. [Алгоритм работы](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC-%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B)
-    1. [Включение](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
-    2. [Проверка приложения](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
-    3. [Переход к приложению](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
-    4. [Статусный регистр](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
-    5. [Запись новой прошивки](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
-3. [LD-скрипт загрузчика](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
-4. [LD-скрипт основного приложения](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
-5. [Таблица прерываний и указатель на неё](https://github.com/KastolomEngineering/K15.Bootloader/edit/f072/README.md#%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5)
+0. [Цель](#Цель)
+1. [Конфигурация периферии](#Конфигурация-периферии)
+2. [Алгоритм работы](#Алгоритм-работы)
+    1. [Включение](#Включение)
+    2. [Проверка приложения](#Проверка-приложения)
+    3. [Переход к приложению](#Переход-к-приложению)
+    4. [Статусный регистр](#Статусный-регистр)
+    5. [Запись новой прошивки](#Запись-новой-прошивки)
+3. [LD-скрипт загрузчика](#LD-скрипт-загрузчика)
+4. [LD-скрипт основного приложения](#LD-скрипт-основного-приложения)
+5. [Таблица прерываний и указатель на неё](#Таблица-прерываний-и-указатель-на-неё)
 
 ## Цель
 K15.Bootloader - загрузчик моделй K15 на семействе STM32F072 по CAN-шине, использующий стандартную реализацию протокола CanOpen. 
