@@ -8,13 +8,13 @@
 /* Функция перехода в основное приложение */
 void jumpToApp( void );
 /* Функция проверки времени нахождения в bootloader */
-uint8_t isTimeoutStayOnBoot();
+uint8_t checkTimeoutBootloader();
 /* Функция записи */
-void writeWord();
+void writeSingleWord();
 /* Функция очисти памяти */
 uint8_t eraseFlash();
 
-uint8_t checkApp();
+uint8_t isAppValid();
 
 void bootInit( void )
 {
@@ -40,7 +40,7 @@ void bootProcess( void )
 
 	if ( !( ( 1 << MASK_STAY_BOOT ) & userData.regControl ) )
 	{
-		if ( isTimeoutStayOnBoot() )
+		if ( checkTimeoutBootloader() )
 		{
 			jumpToApp();
 		}
@@ -48,7 +48,7 @@ void bootProcess( void )
 
 	if ( ( 1 << MASK_NEW_MACHINE_WORD ) & userData.regControl )
 	{
-		writeWord();
+		writeSingleWord();
 	}
 }
 
@@ -72,7 +72,7 @@ uint8_t eraseFlash()
 	return 1;
 }
 
-void writeWord()
+void writeSingleWord()
 {
 	static uint32_t address = 0;
 	static uint32_t machineWord = 0;
@@ -119,7 +119,7 @@ void writeWord()
 	userData.regControl &= ~(1 << MASK_NEW_MACHINE_WORD);
 }
 
-uint8_t isTimeoutStayOnBoot()
+uint8_t checkTimeoutBootloader()
 {
 	static uint8_t isStartWait = 0;
 	static uint32_t timeStayOnBoot = 0;
@@ -138,7 +138,7 @@ uint8_t isTimeoutStayOnBoot()
 	return 0;
 }
 
-uint8_t checkApp()
+uint8_t isAppValid()
 {
 	extern void* _estack;
 	if ( ( (void*)*( uint32_t* ) APP_START_ADDRESS ) != &_estack)
@@ -150,19 +150,35 @@ uint8_t checkApp()
 
 void jumpToApp( void )
 {
-	if ( !checkApp() )
+	if ( !isAppValid() )
 	{
 		userData.regControl |= (1 << MASK_STAY_BOOT);
 		return;
 	}
+	/* Деиницилизируем периферию и HAL */
 	HAL_RCC_DeInit();
 	HAL_DeInit();
 
 	__disable_irq();
 
-	void ( *appPtr )() = ( void (*)() ) ( *( (uint32_t *)( APP_START_ADDRESS + 4 ) ) );
-	__set_MSP( *( (uint32_t *)APP_START_ADDRESS ) );
+	/* Сбрасываем SysTick. На всякий (SysTick отключается в HAL_DeInit) */
+	SysTick->CTRL = 0;
+	SysTick->LOAD = 0;
+	SysTick->VAL = 0;
+
+	/* Выставляем stack pointer */
+	__set_MSP(*(uint32_t *)APP_START_ADDRESS);
+
+	/* Magic! Получаем указатель на reset_handler основного приложения */
+	void (*appPtr)() = (void (*)())(*(uint32_t *)(APP_START_ADDRESS + 4));
+
+	/* Просим, чтобы все операции были завершены */
+	__ISB();
+	__DSB();
 
 	appPtr();
+
+	/* До этого кода мы никогда не дойдем */
+	while(1) { }
 }
 
