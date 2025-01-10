@@ -14,10 +14,16 @@ Bootloader для линейки модулей K15.
 5. [Таблица прерываний и указатель на неё](#Таблица-прерываний-и-указатель-на-неё)
 
 ## Цель
-K15.Bootloader - загрузчик моделй K15 на семействе STM32F072 по CAN-шине, использующий стандартную реализацию протокола CanOpen. 
+K15.Bootloader - загрузчик моделй K15 на семействе STM32F072 и STM32F105 по CAN-шине, использующий стандартную реализацию протокола CanOpen. 
 
 ## Конфигурация периферии
-![image](https://github.com/user-attachments/assets/b418d02b-f7b3-4991-8af1-e21de93c64ac)
+F072:
+
+![image](https://github.com/user-attachments/assets/a42b1be3-2cc1-4156-9d5b-12c24ec34524)
+
+F105:
+
+![image](https://github.com/user-attachments/assets/c0795fc3-cd29-470c-9942-371ff11fe231)
 
 *Прим.: индикация не реализована из-за особенностей схемотехники (на некоторых модулях светодиоды посажены на разные ножки gpio)*
 
@@ -33,7 +39,7 @@ K15.Bootloader - загрузчик моделй K15 на семействе STM
 ### Проверка приложения
 По истечению времени ожидания МК проверяет сходится ли переменная, генерируемая в .ld-скрипте _estack (указывает на конец RAM) с тем, что лежит в начале прошивке. Значения должны сходится.
 ```c
-uint8_t checkApp()
+uint8_t isValidApp()
 {
   extern void* _estack;
   if ( ( (void*)*( uint32_t* ) APP_START_ADDRESS ) != &_estack)
@@ -51,6 +57,9 @@ void ( *appPtr )() = ( void (*)() ) ( *( (uint32_t *)( APP_START_ADDRESS + 4 ) )
 __set_MSP( *( (uint32_t *)APP_START_ADDRESS ) );
 
 appPtr();
+
+/* До этого кода мы никогда не дойдем */
+while(1) { }
 ```
 
 ### Статусный регистр
@@ -90,6 +99,7 @@ uint8_t regControl;
 
 ## LD-скрипт загрузчика
 Загрузчик занимает 16KB и размещается в начале flash. Также добавлены две переменные, указывающее на начало основного приложения и его конец.
+### F072:
 ```c
 /* Memories definition */
 MEMORY
@@ -102,8 +112,21 @@ MEMORY
 _start_app = ORIGIN(APP);
 _end_app = ORIGIN(APP) + LENGTH(APP);
 ```
+### F105:
+```c
+/* Memories definition */
+MEMORY
+{
+  RAM    		(xrw)   : ORIGIN = 0x20000000,   LENGTH = 64K
+  BOOTLOADER 	(rx)    : ORIGIN = 0x8000000,    LENGTH = 16K
+  APP			(rx)    : ORIGIN = 0x8004000,    LENGTH = 256K-16K
+}
 
+_start_app = ORIGIN(APP);
+_end_app = ORIGIN(APP) + LENGTH(APP);
+```
 ## LD-скрипт основного приложения
+### F072:
 Основное приложение занимает всю свободную память после загрузчика (64KB-16KB=48KB).
 ```c
 /* Memories definition */
@@ -121,8 +144,18 @@ _start_app = ORIGIN(FLASH);
   *(.ram_vector)
 } >RAM
 ```
+### F105:
+```c
+/* Memories definition */
+MEMORY
+{
+  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 64K
+  FLASH    (rx)    : ORIGIN = 0x8004000,   LENGTH = 256K-16K
+}
+```
 
 ## Таблица прерываний и указатель на неё
+### F072:
 В основном приложении первым делым необходимо перенести таблицу прерываний в RAM. Размер таблицы прерываний для STM32F072 равняется 48. Адрес начала таблицы прерываний самый первый в прошивке основного приложения. Запись таблицы прерываний ведется в секцию .ram_vector (находится в RAM).
 ```c
 extern uint32_t _start_app;
@@ -141,5 +174,17 @@ __HAL_RCC_SYSCFG_CLK_ENABLE();
 __HAL_SYSCFG_REMAPMEMORY_SRAM();
 __HAL_RCC_SYSCFG_CLK_DISABLE();
 ```
-
+### F105:
+В STMF105 есть регистр VTOR. Его смещение устанавливается в загрузчике:
+```c
+/* Выставляем offset таблицы прерываний */
+SCB->VTOR = APP_START_ADDRESS;
+```
+В основном приложение необходимо только включить прерывания:
+```c
+int main()
+{
+    __enable_irq();
+}
+```
 # Всё!
