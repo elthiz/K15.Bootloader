@@ -38,7 +38,7 @@ void hardwarecanInit( HardwareCanSpeed canSpeed )
 	hcanl->Init.Mode = CAN_MODE_NORMAL;
 	hcanl->Init.SyncJumpWidth = CAN_SJW_1TQ;
 	hcanl->Init.TimeTriggeredMode = DISABLE;
-	hcanl->Init.AutoBusOff = ENABLE;
+	hcanl->Init.AutoBusOff = DISABLE;
 	hcanl->Init.AutoWakeUp = DISABLE;
 	hcanl->Init.AutoRetransmission = DISABLE;
 	hcanl->Init.ReceiveFifoLocked = ENABLE;
