@@ -174,6 +174,12 @@ __HAL_RCC_SYSCFG_CLK_ENABLE();
 __HAL_SYSCFG_REMAPMEMORY_SRAM();
 __HAL_RCC_SYSCFG_CLK_DISABLE();
 ```
+```c
+int main()
+{
+    __enable_irq();
+}
+```
 ### F105:
 В STMF105 есть регистр VTOR. Его смещение устанавливается в загрузчике:
 ```c
