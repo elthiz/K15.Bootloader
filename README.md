@@ -180,6 +180,35 @@ int main()
     __enable_irq();
 }
 ```
+Стандартная реализация в модулях находится в файле system.c
+```c
+#include "system.h"
+#include "moduledata.h"
+
+extern uint32_t _start_app;
+#define VECTOR_TABLE_SIZE 48
+#define APP_START_ADDRESS  (uint32_t) & _start_app
+
+volatile uint32_t __attribute__((section(".ram_vector,\"aw\",%nobits @"))) ram_vector[VECTOR_TABLE_SIZE];
+volatile uint32_t* vectorTableApp = (volatile uint32_t*) APP_START_ADDRESS;
+
+void setIRQFromRam()
+{
+	for (uint32_t i = 0; i < VECTOR_TABLE_SIZE; i++)
+	{
+	  ram_vector[i] = vectorTableApp[i];
+	}
+	__HAL_RCC_SYSCFG_CLK_ENABLE();
+	__HAL_SYSCFG_REMAPMEMORY_SRAM();
+	__HAL_RCC_SYSCFG_CLK_DISABLE();
+	__enable_irq();
+}
+void systemInit( void )
+{
+	setIRQFromRam();
+    ...
+}
+```
 ### F105:
 В STMF105 есть регистр VTOR. Его смещение устанавливается в загрузчике:
 ```c
