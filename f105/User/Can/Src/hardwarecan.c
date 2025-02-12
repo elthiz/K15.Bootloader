@@ -40,7 +40,7 @@ void hardwarecanInit( HardwareCanSpeed canSpeed )
 	hcanl->Init.TimeTriggeredMode = DISABLE;
 	hcanl->Init.AutoBusOff = DISABLE;
 	hcanl->Init.AutoWakeUp = DISABLE;
-	hcanl->Init.AutoRetransmission = DISABLE;
+	hcanl->Init.AutoRetransmission = ENABLE;
 	hcanl->Init.ReceiveFifoLocked = ENABLE;
 	hcanl->Init.TransmitFifoPriority = ENABLE;
 
